@@ -148,7 +148,7 @@ const ExamReadiness = {
     if (leeches.length) {
       acts.push({
         kind: 'leech',
-        text: leeches.length + ' question' + (leeches.length === 1 ? '' : 's') + ' you keep missing need understanding, not drilling'
+        text: leeches.length + ' question' + (leeches.length === 1 ? ' you keep missing needs' : 's you keep missing need') + ' understanding, not drilling'
           + ' — start with "' + leeches[0].node.title + '".',
         lift: Math.min(22, 6 + leeches.length * 3),
         nodeId: leeches[0].node.id,
