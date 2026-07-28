@@ -2,3 +2,7 @@ _site/
 .sass-cache/
 .jekyll-metadata
 .bundle
+
+# KnowledgeNode test deps (installed via npm install in knowledgenode/qa)
+knowledgenode/qa/node_modules/
+knowledgenode/build/
