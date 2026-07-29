@@ -74,8 +74,10 @@ app WebViews unless Capacitor is told otherwise. This is a BUILD setting — no
 change to the app's own code can switch it on, which is why it looks like the
 app is ignoring your keyboard.
 
-**A ready-made `capacitor.config.json` is included in this zip.** Copy it into
-your `Documents\knowledgenode\` folder, replacing the one there:
+**A ready-made `capacitor.config.json` is included in this zip** for reference.
+Open the copy in YOUR Capacitor project folder — the one that already holds
+`capacitor.config.json`, `package.json`, `android/` and `www/` (for example
+`Desktop\capacitor-setup\`) — and add the `"android"` section so it matches:
 
 ```json
 {
@@ -88,8 +90,12 @@ your `Documents\knowledgenode\` folder, replacing the one there:
 }
 ```
 
-If you already changed `appId` or `appName`, keep your values and just add the
-`"android"` section.
+Keep your own `appId` and `appName` — only add the `"android"` section. A
+different `appId` makes Android treat it as a separate app, so you would end up
+with two installs and your notes stranded in the old one.
+
+Check the file's Date modified afterwards: if it still shows an old date, the
+edit did not save and nothing will change.
 
 Then run `npx cap sync android` and rebuild. The prediction bar and autocorrect
 now work in all the app's text boxes.
