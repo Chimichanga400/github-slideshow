@@ -107,9 +107,20 @@ const StudyCoach = {
       + '<div class="coach-head"><span class="coach-orb">⬡</span><div><h2 style="margin:0;font-family:var(--font-ui);font-size:18px;font-weight:800;">Your Study Coach</h2>'
       + '<p style="margin:2px 0 0;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">Ask about how to study — it sees your whole library.</p></div></div>'
       + '<div id="coach-log" class="coach-log"></div>'
-      + '<div class="coach-input-row">'
-      + '<input type="text" id="coach-input" class="config-input" placeholder="e.g. Where should I start today?" style="flex:1;font-size:13px;" />'
-      + '<button class="btn-primary" id="coach-send" style="padding:9px 14px;">→</button>'
+      + '<div class="coach-composer" id="coach-composer">'
+      +   '<div id="coach-attachments" class="coach-attachments" hidden></div>'
+      +   '<textarea id="coach-input" class="coach-textarea" rows="1" placeholder="e.g. Where should I start today?"></textarea>'
+      +   '<div class="coach-composer-actions">'
+      +     '<button type="button" class="coach-attach-btn" id="coach-attach" title="Attach a photo for the coach to read" aria-label="Attach a photo">'
+      +       '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+      +       '<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>'
+      +     '</button>'
+      +     '<button class="coach-send-btn" id="coach-send" title="Send" aria-label="Send">'
+      +       '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+      +       '<path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+      +     '</button>'
+      +   '</div>'
+      +   '<input type="file" id="coach-file" accept="image/*" multiple hidden />'
       + '</div></div>',
       () => { document.querySelector('#modal-overlay .modal')?.classList.remove('modal-coach'); }
     );
@@ -119,12 +130,145 @@ const StudyCoach = {
       // fighting and painting over each other.
       document.querySelector('#modal-overlay .modal')?.classList.add('modal-coach');
       this._renderLog();
-      const input = document.getElementById('coach-input');
-      const send  = () => { const v = input.value.trim(); if (v) { input.value=''; this._ask(v); } };
-      document.getElementById('coach-send')?.addEventListener('click', send);
-      input?.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-      input?.focus();
+      this._wireComposer();
     }, 0);
+  },
+
+  /** Pending images the student attached but has not sent yet. */
+  _pendingImages: [],
+
+  /** The composer: a text box that grows with what you type (like a chat app)
+   *  instead of a one-line field that scrolls sideways, plus an attach button
+   *  so the coach can read a photo. */
+  _wireComposer() {
+    const input = document.getElementById('coach-input');
+    if (!input) return;
+
+    // Grow to fit the text, up to a cap, then scroll inside.
+    const MAX = 160;
+    const autoGrow = () => {
+      input.style.height = 'auto';
+      const h = Math.min(input.scrollHeight, MAX);
+      input.style.height = h + 'px';
+      input.style.overflowY = input.scrollHeight > MAX ? 'auto' : 'hidden';
+    };
+    input.addEventListener('input', autoGrow);
+    autoGrow();
+
+    const send = () => {
+      const v = input.value.trim();
+      if (!v && !this._pendingImages.length) return;
+      input.value = '';
+      autoGrow();
+      this._askWithAttachments(v);
+    };
+    document.getElementById('coach-send')?.addEventListener('click', send);
+
+    // On a physical keyboard Enter sends and Shift+Enter makes a new line. On a
+    // touch keyboard Enter must insert a new line — there is no Shift to hold —
+    // so sending there is the button's job.
+    const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey && !touch) { e.preventDefault(); send(); }
+    });
+
+    // Attach photos for the coach to read.
+    const file = document.getElementById('coach-file');
+    document.getElementById('coach-attach')?.addEventListener('click', () => file?.click());
+    file?.addEventListener('change', async () => {
+      const picked = Array.from(file.files || []).slice(0, 4);
+      file.value = '';
+      for (const f of picked) {
+        try {
+          const { base64, mediaType } = await UploadView._toBase64WithType(f);
+          this._pendingImages.push({ name: f.name, base64, mediaType });
+        } catch (e) { Toast.error('Could not read ' + f.name); }
+      }
+      this._renderAttachments();
+    });
+
+    input.focus();
+  },
+
+  /** Thumbnails of what is attached, each removable before sending. */
+  _renderAttachments() {
+    const box = document.getElementById('coach-attachments');
+    if (!box) return;
+    if (!this._pendingImages.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = this._pendingImages.map((img, i) =>
+      '<div class="coach-chip">'
+      + '<img src="data:' + img.mediaType + ';base64,' + img.base64 + '" alt="" />'
+      + '<span>' + this._escAttr(img.name).slice(0, 18) + '</span>'
+      + '<button type="button" data-rm="' + i + '" aria-label="Remove">✕</button></div>').join('');
+    box.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+      this._pendingImages.splice(parseInt(b.dataset.rm, 10), 1);
+      this._renderAttachments();
+    }));
+  },
+
+  _escAttr(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); },
+
+  /** Read one attached photo into text.
+   *
+   *  Not every configured provider can see images — a custom endpoint, for
+   *  example, has its image blocks stripped before sending, so asking it to
+   *  "read this image" would return confident nonsense about an image it never
+   *  received. So: use the AI's vision only when the provider actually supports
+   *  it, and otherwise fall back to on-device OCR (Tesseract, already bundled),
+   *  which also keeps this working offline and free. */
+  async _scanImage(img) {
+    if (AIService.supportsVision && AIService.supportsVision()) {
+      const t = await AIService._extractSingleImageText(img.base64, img.mediaType);
+      if (t && t.trim()) return t;
+    }
+    if (!window.Tesseract) return '';
+    const url = 'data:' + img.mediaType + ';base64,' + img.base64;
+    const res = await Tesseract.recognize(url, 'eng');
+    return (res && res.data && res.data.text) ? res.data.text : '';
+  },
+
+  /** Send a message, first reading any attached photos into text so the coach
+   *  can work with them (and so the text is preserved in the conversation). */
+  async _askWithAttachments(question) {
+    if (this._pending) return;
+    const imgs = this._pendingImages.slice();
+    this._pendingImages = [];
+    this._renderAttachments();
+    if (!imgs.length) return this._ask(question);
+
+    const label = '📎 ' + imgs.length + ' photo' + (imgs.length > 1 ? 's' : '');
+    this._history.push({ role: 'user', text: question ? question + '\n' + label : label });
+    CoachEngine.saveHistory();
+    this._pending = true;
+    this._renderLog();
+
+    let scanned = '';
+    try {
+      for (let i = 0; i < imgs.length; i++) {
+        const t = await this._scanImage(imgs[i]);
+        if (t && t.trim()) scanned += (imgs.length > 1 ? '\n--- photo ' + (i + 1) + ' ---\n' : '') + t.trim();
+      }
+    } catch (e) {
+      this._pending = false;
+      this._history.push({ role: 'coach', text: 'I could not read that photo — try a clearer, better-lit shot.', error: true });
+      CoachEngine.saveHistory();
+      this._renderLog();
+      return;
+    }
+    this._pending = false;
+
+    if (!scanned) {
+      this._history.push({ role: 'coach', text: 'I could not find any text in that photo. Try a closer, sharper shot.', error: true });
+      CoachEngine.saveHistory();
+      this._renderLog();
+      return;
+    }
+    // The scanned text rides along with the question; the turn itself goes
+    // through the normal engine path so memory and actions still work.
+    const combined = (question || 'Here is a photo I want your help with.')
+      + '\n\nTEXT THE STUDENT PHOTOGRAPHED (scanned on their device):\n"""\n' + scanned.slice(0, 6000) + '\n"""';
+    await this._askPrepared(combined);
   },
 
   _renderSuggestions() { /* suggestions now render inside the log */ },
@@ -212,7 +356,9 @@ const StudyCoach = {
     }
     const html = this._history.map((m, i) =>
       m.role === 'user'
-        ? '<div class="coach-msg user" data-msg="' + i + '">' + this._esc(m.text) + '</div>'
+        // Line breaks are preserved: the composer accepts multi-line questions,
+        // so a message typed over several lines must read back the same way.
+        ? '<div class="coach-msg user" data-msg="' + i + '">' + this._esc(m.text).replace(/\n/g, '<br>') + '</div>'
         : '<div class="coach-msg coach cclamp" data-msg="' + i + '">'
             + m.text.split('\n').filter(l=>l.trim()).map(l=>'<p style="margin:0 0 8px;">'+this._md(l)+'</p>').join('')
             + (m.action ? '<button class="coach-action" data-i="' + i + '">' + this._esc(m.action.label) + '</button>' : '')
@@ -322,7 +468,7 @@ const StudyCoach = {
       + m.text.split('\n').filter(l => l.trim()).map(l => '<p>' + this._md(l) + '</p>').join('')
       + '</div>';
     // Insert just before the input row so it sits ABOVE the text box.
-    const inputRow = coach.querySelector('.coach-input-row');
+    const inputRow = coach.querySelector('.coach-composer') || coach.querySelector('.coach-input-row');
     coach.insertBefore(panel, inputRow);
 
     const close = () => { panel.remove(); };
@@ -376,6 +522,13 @@ const StudyCoach = {
     if (this._pending) return;
     this._history.push({ role: 'user', text: question });
     CoachEngine.saveHistory();     // keep the question even if the reply fails
+    return this._askPrepared(question, exampleContext);
+  },
+
+  /** The turn itself, with the student's message already in the log. Lets a
+   *  caller send the engine more than what is displayed (e.g. text scanned
+   *  from an attached photo) without that bulk showing in the chat bubble. */
+  async _askPrepared(question, exampleContext = null) {
     this._pending = true;
     this._renderLog();
     try {

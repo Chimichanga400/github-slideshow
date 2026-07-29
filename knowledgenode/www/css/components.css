@@ -4046,6 +4046,65 @@
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Composer — one rounded card holding the growing text box and its buttons,
+   so a long question stays fully visible instead of scrolling sideways in a
+   one-line field. */
+.coach-composer {
+  flex-shrink: 0; margin-top: 12px;
+  margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-raised); border: 1px solid var(--border);
+  border-radius: 22px; padding: 10px 12px 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.coach-composer:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.coach-textarea {
+  display: block; width: 100%; border: none; background: transparent;
+  color: var(--text-primary); font-family: var(--font-body);
+  font-size: 16px;            /* 16px stops iOS zooming in on focus */
+  line-height: 1.5; resize: none; outline: none; padding: 2px 2px 6px;
+  max-height: 160px; overflow-y: hidden;
+}
+.coach-textarea::placeholder { color: var(--text-muted); font-family: var(--font-mono); font-size: 13px; }
+.coach-composer-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.coach-attach-btn, .coach-send-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; cursor: pointer; flex-shrink: 0;
+  transition: background .15s, color .15s, transform .1s;
+}
+.coach-attach-btn {
+  width: 34px; height: 34px; margin-right: auto;
+  background: transparent; border: none; color: var(--text-muted);
+}
+.coach-attach-btn:hover { background: var(--bg-elevated, rgba(255,255,255,.06)); color: var(--text-primary); }
+.coach-send-btn {
+  width: 34px; height: 34px; border: none;
+  background: var(--accent); color: #fff;
+}
+.coach-send-btn:hover { transform: scale(1.05); }
+.coach-send-btn:active, .coach-attach-btn:active { transform: scale(.94); }
+
+/* Attached-photo chips, removable before sending */
+.coach-attachments { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0 8px; }
+.coach-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-elevated, rgba(255,255,255,.06));
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 4px 6px 4px 4px; max-width: 100%;
+}
+.coach-chip img { width: 26px; height: 26px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.coach-chip span {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.coach-chip button {
+  border: none; background: transparent; color: var(--text-muted);
+  cursor: pointer; font-size: 12px; line-height: 1; padding: 2px 3px; border-radius: 5px;
+}
+.coach-chip button:hover { color: var(--red, #e5484d); background: rgba(255,255,255,.07); }
+
 .coach-msg:last-child { margin-bottom: 0; }
 
 .coach-empty {
