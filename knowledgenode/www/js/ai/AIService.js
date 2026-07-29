@@ -768,8 +768,9 @@ const AIService = {
           + '\nIf they have not studied today and it fits the conversation, you may gently note that one small session keeps the streak alive — but never guilt-trip, and do not bring it up every turn.';
       }
     } catch {}
+    // The CONFIRMED FACTS block now rides inside LearnerContext.forSession(),
+    // so every AI surface shares it — not just this one.
     const sys = ctx
-      + ((typeof CoachFacts !== 'undefined') ? CoachFacts.block() : '')
       + '\n\nCURRENT DATE & TIME on the student\'s device: ' + this._nowContext() + '.'
       + '\nUse this to gauge urgency against any exam date, to frame what is due today, and to fit suggestions to the time of day (e.g. a shorter recall-focused session late at night). It is context for better advice only — do NOT comment on the time, the day, or tell them to rest/sleep unless they raise it themselves.'
       + streakLine

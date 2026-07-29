@@ -40,8 +40,14 @@ const CoachFacts = {
   },
 
   _write(obj) {
-    try { localStorage.setItem(this.KEY, JSON.stringify(obj)); return true; }
+    try { localStorage.setItem(this.KEY, JSON.stringify(obj)); }
     catch (e) { return false; }
+    // The shared AI context is cached for a few seconds. A fact that just
+    // changed — especially a correction — must reach every AI surface on the
+    // very next call, not once the cache happens to expire, or one part of the
+    // app would keep acting on a value the student has already replaced.
+    try { if (typeof LearnerContext !== 'undefined') LearnerContext._sessionCache = null; } catch (e) {}
+    return true;
   },
 
   /** Every stored fact, most recently stated last. */
@@ -77,7 +83,7 @@ const CoachFacts = {
 
   remove(key) { return this.set(key, ''); },
 
-  clear() { try { localStorage.removeItem(this.KEY); return true; } catch (e) { return false; } },
+  clear() { return this._write({}); },
 
   /**
    * Pull [[FACT: key = value]] lines out of a coach reply.

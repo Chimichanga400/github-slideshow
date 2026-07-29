@@ -67,13 +67,15 @@ password, remember it). The APK it produces can be sent to anyone; they enable
 
 (An Anthropic key from console.anthropic.com works too.)
 
-## Keyboard predictions / autocorrect (one-time setting)
+## Keyboard predictions / autocorrect
 
-Android keyboards (Samsung Keyboard, Gboard) often hide their prediction bar
-inside app WebViews. Capacitor has a switch that fixes this:
+Android keyboards (Samsung Keyboard, Gboard) hide their prediction bar inside
+app WebViews unless Capacitor is told otherwise. This is a BUILD setting — no
+change to the app's own code can switch it on, which is why it looks like the
+app is ignoring your keyboard.
 
-1. Open `Documents\knowledgenode\capacitor.config.json` in a text editor
-2. Add the `"android"` section so it looks like this (keep your existing values):
+**A ready-made `capacitor.config.json` is included in this zip.** Copy it into
+your `Documents\knowledgenode\` folder, replacing the one there:
 
 ```json
 {
@@ -86,8 +88,16 @@ inside app WebViews. Capacitor has a switch that fixes this:
 }
 ```
 
-3. Run `npx cap sync android` and rebuild. The prediction bar and autocorrect
-   now work in all the app's text boxes.
+If you already changed `appId` or `appName`, keep your values and just add the
+`"android"` section.
+
+Then run `npx cap sync android` and rebuild. The prediction bar and autocorrect
+now work in all the app's text boxes.
+
+**Note:** this only applies to the installed Android app. If you are opening the
+app in a phone browser instead (for example over your home network at an address
+like `192.168.0.x`), predictions are controlled by that browser and your
+keyboard's own settings — the page cannot force them on.
 
 ## Notes
 - `www/js/core/AppConfig.js` ships with `MANAGED_ONLY: false` — that IS the

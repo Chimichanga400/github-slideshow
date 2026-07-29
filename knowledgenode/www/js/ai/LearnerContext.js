@@ -106,9 +106,19 @@ const LearnerContext = {
 
     parts.push(this._hardRules());
 
+    // Durable facts the student has stated (exam dates, time available, subjects,
+    // strategy) go in FIRST and unconditionally. They are not derived from the
+    // library, so they must survive an empty or not-yet-loaded node store — and
+    // they must never be lost to a failure further down. This is the memory every
+    // AI surface shares, so nothing the student has explained is asked twice.
+    try {
+      const factBlock = (typeof CoachFacts !== 'undefined') ? CoachFacts.block() : '';
+      if (factBlock) parts.push(factBlock);
+    } catch (e) { /* optional */ }
+
     try {
       const allNodes = nodeStore.getAll();
-      if (!allNodes.length) return '';
+      if (!allNodes.length) return parts.filter(Boolean).join('\n\n');
 
       // Overall learner stats
       const stats        = nodeStore.getStats();
@@ -210,6 +220,7 @@ const LearnerContext = {
         const sharedBlock = (typeof LearnerState !== 'undefined') ? LearnerState.toPromptBlock() : '';
         if (sharedBlock) parts.push(sharedBlock);
       } catch(e) { /* optional */ }
+
 
     } catch(e) {
       console.warn('[LearnerContext] forSession error:', e);
