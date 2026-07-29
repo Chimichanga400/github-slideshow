@@ -522,7 +522,7 @@ const CompetencyView = {
       `<button type="button" class="mp-opt" data-letter="${o.letter}"
         style="display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:11px 13px;margin:5px 0;border-radius:11px;cursor:pointer;
         border:1.5px solid var(--border);background:var(--bg-elevated,var(--bg-raised));color:var(--text);font-size:14px;line-height:1.4;transition:border-color .12s,background .12s;">
-        <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-family:var(--font-mono);font-weight:700;font-size:12px;border:1.5px solid var(--border);color:var(--text-muted);">${o.letter}</span>
+        <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;padding:0 5px;border-radius:7px;font-family:var(--font-mono);font-weight:700;font-size:12px;border:1.5px solid var(--border);color:var(--text-muted);">${o.letter})</span>
         <span style="flex:1;padding-top:2px;">${this._esc(o.text)}</span></button>`).join('');
     const instr = group.instruction || 'Match each item on the left to the correct option below.';
     return `
@@ -596,8 +596,8 @@ const CompetencyView = {
         style="display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:12px 14px;margin:6px 0;border-radius:12px;cursor:pointer;
         border:1.5px solid ${on ? 'var(--accent)' : 'var(--border)'};background:${on ? 'var(--accent-soft)' : 'var(--bg-raised)'};
         color:var(--text);font-size:15px;line-height:1.4;transition:border-color .12s,background .12s;">
-        <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-family:var(--font-mono);font-weight:700;font-size:13px;
-          border:1.5px solid ${on ? 'var(--accent)' : 'var(--border)'};background:${on ? 'var(--accent)' : 'transparent'};color:${on ? '#fff' : 'var(--text-muted)'};">${o.letter}</span>
+        <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;padding:0 5px;border-radius:8px;font-family:var(--font-mono);font-weight:700;font-size:13px;
+          border:1.5px solid ${on ? 'var(--accent)' : 'var(--border)'};background:${on ? 'var(--accent)' : 'transparent'};color:${on ? '#fff' : 'var(--text-muted)'};">${o.letter})</span>
         <span style="flex:1;padding-top:2px;">${this._esc(o.text)}</span></button>`;
     }).join('');
     return stemHtml

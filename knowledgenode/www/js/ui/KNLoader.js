@@ -39,8 +39,30 @@ const KNText = {
     for (const c of chain) { out += t.slice(last, c.idx) + '\n'; last = c.idx + 1; }
     return out + t.slice(last);
   },
+  // "A Employees who earn…" reads as one run-on line, so give a confident
+  // option run a consistent "A)" label and the letter stops colliding with the
+  // option text. Only rewrites an in-order A,B,C… run of at least three, and
+  // only where the option text starts with a capital, digit or quote, so
+  // ordinary prose is never relabelled.
+  _OPT: /^(\s*)\(?([A-Za-z])\)?(?:\s*[—–\-:.)]\s*|\s+(?=["“(]?[A-Z0-9]))\s*(\S.*)$/,
+  label(text) {
+    const lines = String(text == null ? '' : text).split('\n');
+    const hits = []; let want = 'A';
+    lines.forEach((l, i) => {
+      const m = l.match(this._OPT);
+      if (m && m[2].toUpperCase() === want) {
+        hits.push(i); want = String.fromCharCode(want.charCodeAt(0) + 1);
+      }
+    });
+    if (hits.length < 3) return text;
+    hits.forEach(i => {
+      const m = lines[i].match(this._OPT);
+      lines[i] = m[1] + m[2].toUpperCase() + ') ' + m[3];
+    });
+    return lines.join('\n');
+  },
   esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
-  html(s) { return this.esc(this.split(s)).replace(/\n/g, '<br>'); },
+  html(s) { return this.esc(this.label(this.split(s))).replace(/\n/g, '<br>'); },
 };
 if (typeof window !== 'undefined') window.KNText = KNText;
 

@@ -35,6 +35,24 @@ const pAQ = MO.parse(AQ);
 ok('17 consecutive options (A…Q) all captured', pAQ && pAQ.options.length === 17, pAQ && pAQ.options.length);
 ok('last letter is Q', pAQ && pAQ.options[16].letter === 'Q');
 
+
+console.log('1c) Worksheets that write options as a bare letter, no bracket or dash');
+const BARE = 'Provisional tax is payable by:\n'
+  + 'A Employees who earn salary income above R 1 million\n'
+  + 'B Sole proprietors\n'
+  + 'C Individuals (over the age of 65) who earn rental, interest or dividends of R 100 000\n'
+  + 'D All of the above';
+const pB = MO.parse(BARE);
+ok('"A Employees who…" (no separator) parses', !!pB);
+ok('all four options captured', pB && pB.options.length === 4, pB && pB.options.length);
+ok('the stem is kept separate', pB && pB.stem === 'Provisional tax is payable by:', pB && JSON.stringify(pB.stem));
+ok('the letter is not left inside the option text', pB && pB.options[0].text === 'Employees who earn salary income above R 1 million', pB && pB.options[0].text);
+ok('an option containing brackets survives intact', pB && /over the age of 65/.test(pB.options[2].text));
+ok('prose beginning with a lone capital letter is NOT mistaken for options',
+   MO.parse('A resident must pay tax.\nBecause the rule says so.\nCarry on reading.') === null);
+ok('lowercase prose after a bare letter is rejected',
+   MO.parse('Q\nA company sells goods\nB widget makers\nC traders here') === null);
+
 console.log('2) Different separators and single-line OCR blobs');
 ok('"A) x  B) y  C) z" (no newlines) still parses', (() => { const p = MO.parse('Pick one A) apple B) pear C) plum'); return p && p.options.length === 3; })());
 ok('"A. x" dotted separators parse', (() => { const p = MO.parse('Q\nA. one\nB. two\nC. three'); return p && p.options.length === 3; })());

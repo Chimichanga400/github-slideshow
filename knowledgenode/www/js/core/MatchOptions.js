@@ -23,10 +23,18 @@
  * lettered options starting at A (≥3), so ordinary prose is never mangled.
  */
 const MatchOptions = {
-  // A line that is a single lettered option: "A — text", "B) text", "C. text",
-  // "d: text". Captures the letter and the option body. Letters A–Z so long
-  // matching lists (A…Q) are supported, not just A–F.
-  _LINE: /^\s*\(?([A-Za-z])\)?\s*[—–\-:.)]\s+(\S.*)$/,
+  // A line that is a single lettered option. Two accepted shapes:
+  //
+  //   "A — text", "B) text", "C. text", "d: text"   — an explicit separator
+  //   "A Employees who earn…"                        — letter then just a space
+  //
+  // The second shape is common on real worksheets and used to be missed, which
+  // left those questions as an unreadable text blob instead of tappable
+  // choices. It is riskier (a sentence can begin "A resident must…"), so it is
+  // only accepted when the option text starts with a capital, a digit or a
+  // quote — the same guard the shared splitter uses — and, as with every shape,
+  // only inside a confident in-order A,B,C… run of at least three.
+  _LINE: /^\s*\(?([A-Za-z])\)?(?:\s*[—–\-:.)]\s*|\s+(?=["“(]?[A-Z0-9]))\s*(?=\S)(.*)$/,
 
   /** Break a single-line OCR blob ("… A) x B) y C) z") back onto one option per
    *  line. Self-contained (no dependency on KNText/global load order): needs an
