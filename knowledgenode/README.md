@@ -69,6 +69,15 @@ different build directory:
 WWW=/path/to/some/www npm test
 ```
 
+### Real-browser checks
+
+`qa/browser/` drives the app in an actual Chromium browser — real clicks, real
+`localStorage`, real `fetch` — and saves screenshots. It includes a mock AI
+server so every AI code path can be exercised **without an API key**, because it
+serves the app and a fake OpenAI-compatible endpoint from the same origin (the
+app's CSP allows `connect-src 'self'`). See `qa/browser/README.md`. These need
+Playwright, so they are kept out of `npm test`.
+
 ### The suites
 
 | Suite | Covers |

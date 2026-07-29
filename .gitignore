@@ -6,3 +6,4 @@ _site/
 # KnowledgeNode test deps (installed via npm install in knowledgenode/qa)
 knowledgenode/qa/node_modules/
 knowledgenode/build/
+knowledgenode/qa/browser/shots/
