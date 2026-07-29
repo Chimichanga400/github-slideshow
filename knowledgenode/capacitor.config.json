@@ -3,6 +3,6 @@
   "appName": "KnowledgeNode",
   "webDir": "www",
   "android": {
-    "captureInput": true
+    "captureInput": false
   }
 }

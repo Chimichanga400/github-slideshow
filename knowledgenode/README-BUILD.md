@@ -69,41 +69,26 @@ password, remember it). The APK it produces can be sent to anyone; they enable
 
 ## Keyboard predictions / autocorrect
 
-Android keyboards (Samsung Keyboard, Gboard) hide their prediction bar inside
-app WebViews unless Capacitor is told otherwise. This is a BUILD setting — no
-change to the app's own code can switch it on, which is why it looks like the
-app is ignoring your keyboard.
+**Status: unresolved on Samsung Keyboard in the Android WebView.**
 
-**A ready-made `capacitor.config.json` is included in this zip** for reference.
-Open the copy in YOUR Capacitor project folder — the one that already holds
-`capacitor.config.json`, `package.json`, `android/` and `www/` (for example
-`Desktop\capacitor-setup\`) — and add the `"android"` section so it matches:
+The page itself does everything it can — every text box gets
+`autocorrect="on"`, `autocapitalize="sentences"`, `spellcheck="true"` and
+`autocomplete="on"`, applied before the field is focused, including boxes
+created later such as the coach composer. Verified in a real browser.
 
-```json
-{
-  "appId": "app.knowledgenode.study",
-  "appName": "KnowledgeNode",
-  "webDir": "www",
-  "android": {
-    "captureInput": true
-  }
-}
-```
+The same build shows the prediction strip correctly in a phone browser and does
+not show it inside the installed Capacitor app, which places the cause in the
+WebView rather than in the app's code.
 
-Keep your own `appId` and `appName` — only add the `"android"` section. A
-different `appId` makes Android treat it as a separate app, so you would end up
-with two installs and your notes stranded in the old one.
+`android.captureInput` was previously recommended here as the fix. **It is not.**
+That option concerns hardware keyboard capture, not the on-screen suggestion
+strip; it was set to `true` in a real project where predictions still did not
+appear. Because it intercepts key events it is worth testing with
+`"captureInput": false`, but this is an untested hypothesis, not a known fix.
 
-Check the file's Date modified afterwards: if it still shows an old date, the
-edit did not save and nothing will change.
-
-Then run `npx cap sync android` and rebuild. The prediction bar and autocorrect
-now work in all the app's text boxes.
-
-**Note:** this only applies to the installed Android app. If you are opening the
-app in a phone browser instead (for example over your home network at an address
-like `192.168.0.x`), predictions are controlled by that browser and your
-keyboard's own settings — the page cannot force them on.
+**What reliably works today:** open the app in the phone browser and use
+Add to Home Screen. Predictions work there, and the manifest already declares
+`display: standalone`, so it opens without an address bar.
 
 ## Notes
 - `www/js/core/AppConfig.js` ships with `MANAGED_ONLY: false` — that IS the
