@@ -1,0 +1,8 @@
+{
+  "appId": "app.knowledgenode.study",
+  "appName": "KnowledgeNode",
+  "webDir": "www",
+  "android": {
+    "captureInput": false
+  }
+}
