@@ -58,13 +58,17 @@ const ReviewView = {
     if (emptyEl2) emptyEl2.style.display = 'none';
     // Single pass — avoids 5 separate loops (4 reduce + 1 map) and multiple
     // dueQuestions() SRS scans. Inline the due check to avoid creating arrays.
-    let totalQs = 0, dueQs = 0, newQs = 0, weakCount = 0;
+    let totalQs = 0, dueQs = 0, newQs = 0, weakCount = 0, calcQs = 0;
     const now = Date.now(), subjectSet = new Set();
     for (const n of allNodes) {
-      totalQs  += n.questions.length;
       weakCount += n.weakQuestions?.length || 0;
       if (n.subject) subjectSet.add(n.subject);
-      for (const q of n.questions) {
+      // Count only what review can actually serve — full calculations are exam
+      // material, so counting them here would promise cards that never appear.
+      const reviewable = n.reviewableQuestions();
+      totalQs += reviewable.length;
+      calcQs  += n.questions.length - reviewable.length;
+      for (const q of reviewable) {
         const srs = n.srsState[q.id];
         if (!srs || srs.repetitions === 0) newQs++;
         else if (srs.nextReview <= now)     dueQs++;
@@ -90,6 +94,9 @@ const ReviewView = {
           <div class="review-stat" style="color:var(--blue,#4f9cf9);"><span class="review-stat-val">${newQs}</span><span class="review-stat-key">New</span></div>
           <div class="review-stat"><span class="review-stat-val">${allNodes.length}</span><span class="review-stat-key">Nodes</span></div>
         </div>
+
+        ${calcQs > 0 ? `<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin:-6px 0 14px;line-height:1.5;">
+          ${calcQs} full calculation${calcQs===1?' is':'s are'} kept out of review — work ${calcQs===1?'it':'them'} in the Exam tab, where you have time to lay the answer out.</div>` : ''}
 
         <div style="margin-bottom:16px;">
           <label class="config-label">Mode</label>
@@ -234,7 +241,7 @@ const ReviewView = {
     if (budget <= 0) return [];
     const fresh = [];
     for (const node of this._shuffle([...nodes])) {
-      for (const q of node.questions) {
+      for (const q of node.reviewableQuestions()) {
         const s = node.srsState[q.id];
         if (!s || (s.repetitions || 0) === 0) {
           fresh.push({ node, question: q, state: s || null, _new: true });
@@ -257,7 +264,11 @@ const ReviewView = {
     nodes.forEach(node => {
       (node.weakQuestions || []).forEach(w => {
         const q = node.questions.find(q => q.id === w.id);
-        if (q) items.push({ node, question: q, state: node.srsState[q.id] || null, _struggle: w });
+        // Skip calculations: they may carry old struggle records from before
+        // they were routed to the exam, and re-drilling them here is the very
+        // thing that made review unusable.
+        if (q && (typeof QuestionKind === 'undefined' || QuestionKind.isReviewable(q)))
+          items.push({ node, question: q, state: node.srsState[q.id] || null, _struggle: w });
       });
     });
     // Hardest first: more misses and lower ratings come first
@@ -281,7 +292,7 @@ const ReviewView = {
     });
 
     sorted.forEach(node => {
-      node.questions.forEach(q => {
+      node.reviewableQuestions().forEach(q => {
         const s = node.srsState[q.id];
         const isNew = !s || s.repetitions === 0;
         const item  = { node, question: q, state: s || null };

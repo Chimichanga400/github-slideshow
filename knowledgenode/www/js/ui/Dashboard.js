@@ -27,9 +27,11 @@ const Dashboard = {
     // it twice (once in the loop, once in getStats which was already called above).
     for (const n of nodes) {  // `now` already declared above
       const subj = n.subject || 'Uncategorised';
-      // Inline due check: same logic as dueQuestions() but without creating an array
+      // Inline due check: same logic as dueQuestions() but without creating an
+      // array. Full calculations are exam material and never served by review,
+      // so they must not be counted as due here either.
       let due = 0;
-      for (const q of n.questions) {
+      for (const q of n.reviewableQuestions()) {
         const srs = n.srsState[q.id];
         if (srs && srs.repetitions > 0 && srs.nextReview <= now) due++;
       }

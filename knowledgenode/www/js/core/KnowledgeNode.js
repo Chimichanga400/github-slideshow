@@ -292,9 +292,24 @@ class KnowledgeNode {
       .map(w => ({ id: w.id, question: w.text, answer: byId[w.id] ? byId[w.id].answer : '', count: w.count || 1 }));
   }
 
+  /** Questions spaced repetition may serve. Full calculations are excluded —
+   *  they cannot be answered between two flashcards, so they live in the exam
+   *  instead. Filtering here keeps every due count in the app honest, rather
+   *  than promising cards the review session would then refuse to show. */
+  reviewableQuestions() {
+    if (typeof QuestionKind === 'undefined') return this.questions;
+    return this.questions.filter(q => QuestionKind.isReviewable(q));
+  }
+
+  /** Questions that are full calculations — exam material, not flashcards. */
+  calculationQuestions() {
+    if (typeof QuestionKind === 'undefined') return [];
+    return this.questions.filter(q => !QuestionKind.isReviewable(q));
+  }
+
   dueQuestions() {
     const now = Date.now();
-    return this.questions.filter(q => {
+    return this.reviewableQuestions().filter(q => {
       const s = this.srsState[q.id];
       // Never reviewed — NOT due yet. Only becomes due after first rating.
       if (!s || s.repetitions === 0) return false;

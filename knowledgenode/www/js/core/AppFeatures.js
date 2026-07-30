@@ -26,7 +26,7 @@ const AppFeatures = [
   {
     name: 'Review / Spaced Repetition',
     where: 'Review tab',
-    what: 'Flashcard-style review of all topics. Cards are scheduled automatically — weak cards come back sooner. Modes: Today (due reviews blended with a PACED batch of new cards — a big upload is dripped in at a sustainable daily limit, not dumped all at once), All, and Weak Spots (the questions you keep getting wrong, hardest first, across the whole library). LEECH BREAKER: a card failed several times stops being re-drilled and the app offers to understand the concept instead of grinding a blank.',
+    what: 'Flashcard-style review of all topics. Cards are scheduled automatically — weak cards come back sooner. Review holds SHORT recall questions only: a full multi-step calculation cannot be answered between two flashcards, so those are routed to Exam Mode instead and review stays fast. Modes: Today (due reviews blended with a PACED batch of new cards — a big upload is dripped in at a sustainable daily limit, not dumped all at once), All, and Weak Spots (the questions you keep getting wrong, hardest first, across the whole library). LEECH BREAKER: a card failed several times stops being re-drilled and the app offers to understand the concept instead of grinding a blank.',
     coachTip: 'Best for consolidation and exam prep. Do the "Today" session daily — it mixes review with a healthy number of new cards so nothing floods you. If a student keeps failing the same question, tell them that\'s a signal to LEARN the concept (open the topic / use the tutor), not to drill it harder — the app flags these automatically.',
   },
   {
